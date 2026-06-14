@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeMaster Elite — Royal Typing Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ==================== CSS RESET & VARIABLES ==================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --navy:      #0A0E27;
+  --navy-mid:  #0D1230;
+  --purple:    #1A1040;
+  --gold:      #C9A84C;
+  --gold-lt:   #E8C96A;
+  --gold-dk:   #A07830;
+  --champagne: #F5E6C8;
+  --champ-dim: #C8B99A;
+  --white-gls: rgba(255,255,255,0.08);
+  --gold-gls:  rgba(201,168,76,0.15);
+  --red-warn:  #E84040;
+  --green-ok:  #4CAF50;
+  --radius:    16px;
+  --radius-lg: 24px;
+  --shadow:    0 8px 40px rgba(0,0,0,0.6);
+  --glow-gold: 0 0 30px rgba(201,168,76,0.35);
+  --font-sz:   1rem;
+}
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  background: var(--navy);
+  color: var(--champagne);
+  font-family: 'Crimson Pro', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+/* ==================== STARFIELD CANVAS ==================== */
+#starfield {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+}
+/* ==================== LAYOUT ==================== */
+#app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+/* ==================== HEADER ==================== */
+#header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 32px;
+  background: linear-gradient(90deg, rgba(10,14,39,0.95) 0%, rgba(26,16,64,0.95) 100%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(201,168,76,0.3);
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+}
+.logo-wrap { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.logo-wrap svg { width: 40px; height: 40px; filter: drop-shadow(0 0 12px rgba(201,168,76,0.7)); }
+.logo-text { font-family: 'Cinzel', serif; font-size: 1.35rem; font-weight: 700; }
+.logo-text span { background: linear-gradient(90deg,#C9A84C,#F5E6C8,#C9A84C); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; }
+nav { display: flex; align-items: center; gap: 8px; }
+.nav-btn {
+  font-family: 'Cinzel', serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 1px;
+  color: var(--champ-dim); background: transparent; border: 1px solid transparent;
+  padding: 8px 18px; border-radius: 50px; cursor: pointer;
+  transition: all 0.3s ease; text-transform: uppercase;
+}
+.nav-btn:hover, .nav-btn.active {
+  color: var(--gold); border-color: var(--gold);
+  background: rgba(201,168,76,0.1); box-shadow: 0 0 20px rgba(201,168,76,0.2);
+}
+#audience-badge {
+  font-family: 'Cinzel', serif; font-size: 0.72rem; font-weight: 600;
+  color: var(--navy); background: linear-gradient(135deg,#C9A84C,#E8C96A);
+  padding: 5px 14px; border-radius: 50px; margin-left: 8px;
+  display: none;
+}
+/* ==================== SCREENS ==================== */
+.screen {
+  display: none; flex: 1; padding: 40px 24px;
+  animation: fadeSlideIn 0.4s ease forwards;
+  max-width: 1200px; margin: 0 auto; width: 100%;
+}
+.screen.active { display: flex; flex-direction: column; }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-24px); }
+}
+/* ==================== TYPOGRAPHY ==================== */
+.royal-heading {
+  font-family: 'Cinzel', serif; font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700; text-align: center; line-height: 1.2; margin-bottom: 8px;
+  background: linear-gradient(90deg,#A07830,#C9A84C,#F5E6C8,#C9A84C,#A07830);
+  background-size: 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+.royal-sub {
+  font-family: 'Crimson Pro', serif; font-size: 1.1rem; color: var(--champ-dim);
+  text-align: center; margin-bottom: 40px; font-style: italic;
+}
+@keyframes shimmer { 0%{background-position:0%} 100%{background-position:300%} }
+/* ==================== GLASSMORPHISM CARDS ==================== */
+.glass-card {
+  background: linear-gradient(135deg, rgba(26,16,64,0.7) 0%, rgba(10,14,39,0.8) 100%);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.1);
+  transition: all 0.35s ease;
+  position: relative; overflow: hidden;
+}
+.glass-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at top, rgba(201,168,76,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.glass-card:hover {
+  border-color: rgba(201,168,76,0.65);
+  box-shadow: 0 12px 60px rgba(0,0,0,0.6), 0 0 40px rgba(201,168,76,0.2), inset 0 1px 0 rgba(201,168,76,0.2);
+  transform: translateY(-4px);
+}
+/* ==================== AUDIENCE CARDS ==================== */
+.cards-grid-3 {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+  gap: 28px; width: 100%;
+}
+.audience-card {
+  cursor: pointer; padding: 44px 32px; text-align: center;
+  min-height: 280px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+}
+.audience-card .card-icon { font-size: 4rem; filter: drop-shadow(0 0 20px rgba(201,168,76,0.5)); transition: transform 0.3s ease; }
+.audience-card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+.audience-card .card-title { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold); }
+.audience-card .card-desc { font-size: 1rem; color: var(--champ-dim); line-height: 1.6; }
+.audience-card .card-age { font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600; color: var(--navy); background: linear-gradient(135deg,#C9A84C,#E8C96A); padding: 4px 14px; border-radius: 50px; letter-spacing: 1px; }
+/* ==================== DIFFICULTY CARDS ==================== */
+.diff-card { cursor: pointer; padding: 36px 28px; text-align: center; }
+.diff-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.diff-title { font-family: 'Cinzel', serif; font-size: 1.3rem; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+.diff-desc { color: var(--champ-dim); font-size: 0.98rem; margin-bottom: 16px; line-height: 1.5; }
+.diff-stars { font-size: 1.4rem; color: var(--gold); margin-bottom: 10px; }
+.diff-wpm { font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--champ-dim); border: 1px solid rgba(201,168,76,0.3); padding: 4px 12px; border-radius: 50px; display: inline-block; }
+/* ==================== LEVEL GRID ==================== */
+.levels-grid {
+  display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 20px; width: 100%;
+}
+.level-card {
+  cursor: pointer; padding: 28px 20px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.level-card.locked { opacity: 0.45; cursor: not-allowed; }
+.level-card.locked:hover { transform: none !important; box-shadow: 0 8px 40px rgba(0,0,0,0.5) !important; border-color: rgba(201,168,76,0.3) !important; }
+.level-num { font-family: 'Cinzel', serif; font-size: 1.8rem; font-weight: 900; color: var(--gold); }
+.level-name { font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 600; color: var(--champ-dim); margin: 4px 0 10px; letter-spacing: 0.5px; }
+.level-stars { font-size: 1rem; color: var(--gold); margin-bottom: 10px; }
+.level-progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+.level-progress-fill { height: 100%; background: linear-gradient(90deg,#C9A84C,#E8C96A); border-radius: 2px; transition: width 0.5s ease; }
+.lock-icon { position: absolute; top: 12px; right: 14px; font-size: 1.1rem; color: var(--champ-dim); }
+.badge-complete { position: absolute; top: 10px; left: 12px; font-size: 1.2rem; }
+/* ==================== TYPING TEST ==================== */
+#screen-typing { gap: 0; }
+.typing-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px; margin-bottom: 28px;
+  padding: 18px 28px;
+  background: linear-gradient(135deg, rgba(26,16,64,0.7), rgba(10,14,39,0.8));
+  border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+}
+.typing-stat { text-align: center; }
+.typing-stat .stat-val { font-family: 'Cinzel', serif; font-size: 1.8rem; font-weight: 700; color: var(--gold); }
+.typing-stat .stat-lbl { font-size: 0.75rem; color: var(--champ-dim); letter-spacing: 1px; text-transform: uppercase; }
+/* Circular timer */
+.timer-wrap { position: relative; width: 90px; height: 90px; }
+.timer-svg { transform: rotate(-90deg); }
+.timer-bg { fill: none; stroke: rgba(201,168,76,0.15); stroke-width: 6; }
+.timer-arc { fill: none; stroke: var(--gold); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 251.2; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s ease; }
+.timer-arc.urgent { stroke: var(--red-warn); animation: pulse-red 0.6s ease infinite alternate; }
+.timer-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold); }
+.timer-num.urgent { color: var(--red-warn); }
+@keyframes pulse-red { from{filter:drop-shadow(0 0 4px #E84040)} to{filter:drop-shadow(0 0 14px #E84040)} }
+/* Text display */
+.typing-passage-wrap {
+  padding: 28px 32px; margin-bottom: 20px;
+  min-height: 140px; line-height: 2.2;
+  font-family: 'Fira Code', monospace; font-size: calc(var(--font-sz) * 1.05);
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, rgba(26,16,64,0.7), rgba(10,14,39,0.8));
+  border: 1px solid rgba(201,168,76,0.3); border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  user-select: none; word-break: break-word;
+}
+.char { position: relative; }
+.char.correct { color: var(--gold); }
+.char.incorrect { color: var(--red-warn); text-decoration: underline; }
+.char.pending { color: rgba(245,230,200,0.35); }
+.char.cursor::after {
+  content: ''; position: absolute; left: 0; bottom: -2px;
+  width: 100%; height: 2px; background: var(--gold);
+  animation: cursor-blink 0.8s ease infinite alternate;
+  box-shadow: 0 0 8px var(--gold);
+}
+@keyframes cursor-blink { from{opacity:1} to{opacity:0} }
+/* Input area */
+.typing-input-wrap { position: relative; margin-bottom: 20px; }
+#typing-input {
+  width: 100%; padding: 18px 24px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.35);
+  border-radius: var(--radius); color: var(--champagne);
+  font-family: 'Fira Code', monospace; font-size: calc(var(--font-sz) * 1.05);
+  resize: none; outline: none; transition: border-color 0.3s, box-shadow 0.3s;
+  backdrop-filter: blur(10px); caret-color: var(--gold);
+}
+#typing-input:focus { border-color: var(--gold); box-shadow: 0 0 24px rgba(201,168,76,0.2); }
+/* ==================== RESULTS ==================== */
+.results-card { padding: 44px 40px; text-align: center; max-width: 680px; margin: 0 auto; width: 100%; }
+.result-wpm { font-family: 'Cinzel', serif; font-size: clamp(3.5rem,8vw,6rem); font-weight: 900; color: var(--gold); text-shadow: 0 0 40px rgba(201,168,76,0.5); line-height: 1; }
+.result-label { font-family: 'Cinzel', serif; font-size: 0.8rem; letter-spacing: 3px; color: var(--champ-dim); margin-bottom: 24px; text-transform: uppercase; }
+.result-stars { font-size: 2.5rem; color: var(--gold); margin: 16px 0; }
+.result-msg { font-size: 1.15rem; color: var(--champagne); font-style: italic; margin-bottom: 28px; padding: 16px 24px; background: rgba(201,168,76,0.08); border-left: 3px solid var(--gold); border-radius: 0 var(--radius) var(--radius) 0; text-align: left; }
+.result-chart-wrap { display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; margin-bottom: 28px; }
+.result-donut { width: 160px; height: 160px; position: relative; }
+.result-donut canvas { width: 100% !important; height: 100% !important; }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.donut-center .dval { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; color: var(--gold); }
+.donut-center .dlbl { font-size: 0.7rem; color: var(--champ-dim); letter-spacing: 1px; }
+.result-bar-wrap { width: 100%; max-width: 400px; }
+.result-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+/* ==================== BUTTONS ==================== */
+.btn {
+  font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 1.5px;
+  padding: 13px 30px; border-radius: 50px; cursor: pointer; border: none;
+  text-transform: uppercase; transition: all 0.3s ease; position: relative; overflow: hidden;
+}
+.btn::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); transition: background 0.2s; }
+.btn:hover::after { background: rgba(255,255,255,0.07); }
+.btn-gold {
+  background: linear-gradient(135deg,#A07830,#C9A84C,#E8C96A,#C9A84C);
+  background-size: 200%; color: #0A0E27; box-shadow: 0 6px 28px rgba(201,168,76,0.35);
+  animation: btn-shimmer 3s linear infinite;
+}
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(201,168,76,0.5); }
+@keyframes btn-shimmer { 0%{background-position:0%} 100%{background-position:200%} }
+.btn-outline {
+  background: transparent; color: var(--gold);
+  border: 1px solid rgba(201,168,76,0.5);
+}
+.btn-outline:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); box-shadow: 0 0 20px rgba(201,168,76,0.2); }
+.btn-ghost { background: rgba(255,255,255,0.05); color: var(--champ-dim); border: 1px solid rgba(255,255,255,0.1); }
+.btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--champagne); }
+.btn-danger { background: rgba(232,64,64,0.15); color: #FF6B6B; border: 1px solid rgba(232,64,64,0.4); }
+.btn-danger:hover { background: rgba(232,64,64,0.3); }
+/* ==================== PROGRESS SCREEN ==================== */
+.charts-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap: 28px; width: 100%; }
+.chart-card { padding: 28px; }
+.chart-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--gold); margin-bottom: 20px; text-align: center; letter-spacing: 1px; }
+.chart-wrap { position: relative; height: 220px; }
+.pb-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.pb-table th { font-family: 'Cinzel', serif; font-size: 0.75rem; font-weight: 600; color: var(--gold); letter-spacing: 1px; padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(201,168,76,0.25); }
+.pb-table td { padding: 10px 14px; color: var(--champ-dim); border-bottom: 1px solid rgba(255,255,255,0.05); }
+.pb-table tr:last-child td { border-bottom: none; }
+/* ==================== SETTINGS SCREEN ==================== */
+.settings-wrap { max-width: 680px; margin: 0 auto; width: 100%; }
+.settings-section { padding: 28px 32px; margin-bottom: 20px; }
+.settings-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--gold); margin-bottom: 20px; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 16px; flex-wrap: wrap; }
+.setting-row:last-child { border-bottom: none; }
+.setting-lbl { color: var(--champagne); font-size: 1rem; }
+.setting-lbl small { display: block; color: var(--champ-dim); font-size: 0.82rem; }
+/* Toggle switch */
+.toggle { position: relative; width: 52px; height: 28px; display: inline-block; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; cursor: pointer; inset: 0;
+  background: rgba(255,255,255,0.1); border-radius: 50px;
+  transition: 0.3s; border: 1px solid rgba(201,168,76,0.3);
+}
+.toggle-slider::before {
+  content: ''; position: absolute; height: 20px; width: 20px;
+  left: 3px; top: 3px; background: var(--champ-dim); border-radius: 50%;
+  transition: 0.3s;
+}
+.toggle input:checked + .toggle-slider { background: linear-gradient(135deg,#A07830,#C9A84C); border-color: var(--gold); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(24px); background: white; }
+/* Segmented control */
+.seg-ctrl { display: flex; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 50px; border: 1px solid rgba(201,168,76,0.2); }
+.seg-btn { padding: 7px 16px; border-radius: 50px; border: none; background: transparent; color: var(--champ-dim); cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; transition: all 0.25s; }
+.seg-btn.active { background: linear-gradient(135deg,#A07830,#C9A84C); color: var(--navy); }
+/* ==================== MODAL ==================== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.25s ease;
+}
+.modal-overlay.show { display: flex; }
+.modal-box { padding: 40px 36px; max-width: 460px; width: 100%; text-align: center; }
+.modal-title { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; color: var(--gold); margin-bottom: 12px; }
+.modal-text { color: var(--champ-dim); margin-bottom: 28px; line-height: 1.7; }
+.modal-btns { display: flex; gap: 14px; justify-content: center; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+/* ==================== CONFETTI ==================== */
+#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+/* ==================== BACK BUTTON ==================== */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Cinzel', serif; font-size: 0.8rem; font-weight: 600;
+  color: var(--champ-dim); background: transparent; border: none;
+  cursor: pointer; margin-bottom: 24px; transition: color 0.3s;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.back-btn:hover { color: var(--gold); }
+.back-btn::before { content: '◀'; font-size: 0.7rem; }
+/* ==================== SCROLLBAR ==================== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.4); border-radius: 3px; }
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  #header { padding: 12px 18px; }
+  .logo-text { font-size: 1.05rem; }
+  .screen { padding: 24px 16px; }
+  .typing-topbar { padding: 14px 18px; }
+  .results-card { padding: 28px 22px; }
+  nav { gap: 4px; }
+  .nav-btn { padding: 7px 12px; font-size: 0.72rem; }
+}
+@media (max-width: 480px) {
+  .cards-grid-3 { grid-template-columns: 1fr; }
+  .levels-grid { grid-template-columns: repeat(2,1fr); }
+}
+</style><!-- ==================== HTML BODY ==================== -->
+<canvas id="starfield"></canvas>
+<canvas id="confetti-canvas"></canvas>
+<div id="app">
+
+<!-- HEADER -->
+<header id="header">
+  <div class="logo-wrap" onclick="showScreen('screen-home')">
+    <!-- Royal Crown SVG -->
+    <svg viewBox="0 0 80 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 5 L15 35 L5 20 L5 55 L75 55 L75 20 L65 35 Z" fill="url(#crownGrad)" stroke="#C9A84C" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="5"  cy="20" r="5" fill="#C9A84C"/>
+      <circle cx="40" cy="5"  r="5" fill="#E8C96A"/>
+      <circle cx="75" cy="20" r="5" fill="#C9A84C"/>
+      <rect x="5" y="57" width="70" height="8" rx="4" fill="url(#crownGrad2)"/>
+      <circle cx="22" cy="46" r="4" fill="#F5E6C8" opacity="0.6"/>
+      <circle cx="40" cy="46" r="4" fill="#F5E6C8" opacity="0.8"/>
+      <circle cx="58" cy="46" r="4" fill="#F5E6C8" opacity="0.6"/>
+      <defs>
+        <linearGradient id="crownGrad" x1="0" y1="0" x2="80" y2="70">
+          <stop offset="0%"   stop-color="#A07830"/>
+          <stop offset="50%"  stop-color="#E8C96A"/>
+          <stop offset="100%" stop-color="#A07830"/>
+        </linearGradient>
+        <linearGradient id="crownGrad2" x1="0" y1="0" x2="80" y2="0">
+          <stop offset="0%"   stop-color="#C9A84C"/>
+          <stop offset="100%" stop-color="#E8C96A"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="logo-text"><span>TypeMaster Elite</span></div>
+  </div>
+
+  <nav>
+    <button class="nav-btn active" onclick="showScreen('screen-home')">Home</button>
+    <button class="nav-btn" onclick="showScreen('screen-progress')">My Progress</button>
+    <button class="nav-btn" onclick="showScreen('screen-settings')">Settings</button>
+    <span id="audience-badge"></span>
+  </nav>
+</header>
+
+<!-- ==================== HOME SCREEN ==================== -->
+<main id="screen-home" class="screen active">
+  <div style="text-align:center;margin-bottom:48px;margin-top:20px;">
+    <p class="royal-heading">Welcome to TypeMaster Elite</p>
+    <p class="royal-sub">The Royal Academy of Typing Excellence — Choose Your Journey</p>
+    <p style="font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;opacity:0.7">✦ Select Your Audience ✦</p>
+  </div>
+
+  <div class="cards-grid-3">
+    <div class="glass-card audience-card" onclick="selectAudience('children')">
+      <div class="card-icon"><img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=120&h=120&fit=crop&crop=face" alt="Bachay" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);box-shadow:0 0 20px rgba(201,168,76,0.5);"></div>
+      <div class="card-title">Bachay</div>
+      <span class="card-age">Age 6–12</span>
+      <div class="card-desc">Simple and fun words to start your royal typing journey. Characters, animals & colours!</div>
+    </div>
+    <div class="glass-card audience-card" onclick="selectAudience('adults')">
+      <div class="card-icon"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face" alt="Baday" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);box-shadow:0 0 20px rgba(201,168,76,0.5);"></div>
+      <div class="card-title">Baday</div>
+      <span class="card-age">Age 13–40</span>
+      <div class="card-desc">Standard English & Urdu typing practice. Build speed and precision like a royal scribe.</div>
+    </div>
+    <div class="glass-card audience-card" onclick="selectAudience('seniors')">
+      <div class="card-icon"><img src="https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=120&h=120&fit=crop&crop=face" alt="Buzurg" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);box-shadow:0 0 20px rgba(201,168,76,0.5);"></div>
+      <div class="card-title">Buzurg</div>
+      <span class="card-age">Age 40+</span>
+      <div class="card-desc">Large fonts, slow pace, and easy familiar words. Comfort and grace for wise learners.</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:52px;opacity:0.45;font-size:0.85rem;font-style:italic;">
+    ✦ Crafted with Royal Elegance for Every Learner ✦
+  </div>
+</main>
+
+<!-- ==================== DIFFICULTY SCREEN ==================== -->
+<main id="screen-difficulty" class="screen">
+  <button class="back-btn" onclick="showScreen('screen-home')">Back to Home</button>
+  <div style="text-align:center;margin-bottom:40px;">
+    <p class="royal-heading">Choose Your Challenge</p>
+    <p class="royal-sub" id="diff-sub">Select the difficulty that suits you</p>
+  </div>
+  <div class="cards-grid-3">
+    <div class="glass-card diff-card" onclick="selectDifficulty('easy')">
+      <div class="diff-icon">🟢</div>
+      <div class="diff-title">Easy</div>
+      <div class="diff-stars">★☆☆</div>
+      <div class="diff-desc">Short common words • No pressure • 60 seconds to shine</div>
+      <div class="diff-wpm">Target: 20–40 WPM</div>
+    </div>
+    <div class="glass-card diff-card" onclick="selectDifficulty('normal')">
+      <div class="diff-icon">🟡</div>
+      <div class="diff-title">Normal</div>
+      <div class="diff-stars">★★☆</div>
+      <div class="diff-desc">Medium sentences • Standard WPM tracking • 60 seconds</div>
+      <div class="diff-wpm">Target: 40–70 WPM</div>
+    </div>
+    <div class="glass-card diff-card" onclick="selectDifficulty('hard')">
+      <div class="diff-icon">🔴</div>
+      <div class="diff-title">Hard</div>
+      <div class="diff-stars">★★★</div>
+      <div class="diff-desc">Complex paragraphs • Punctuation included • 45 seconds</div>
+      <div class="diff-wpm">Target: 70–120 WPM</div>
+      <div style="margin-top:10px;display:inline-block;background:linear-gradient(135deg,#C9A84C,#E8C96A);color:#0A0E27;font-family:'Cinzel',serif;font-weight:700;font-size:0.9rem;padding:6px 18px;border-radius:50px;letter-spacing:1px;">💰 $2 Premium</div>
+    </div>
+  </div>
+</main>
+
+<!-- ==================== PAYMENT MODAL ==================== -->
+<div id="payment-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,14,39,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(135deg,#0D1230,#1A1040);border:1px solid rgba(201,168,76,0.5);border-radius:24px;padding:40px 32px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 60px rgba(0,0,0,0.8);">
+    <div style="font-size:3rem;margin-bottom:12px;">🔐</div>
+    <h2 style="font-family:'Cinzel',serif;color:#C9A84C;font-size:1.5rem;margin-bottom:8px;">Hard Level — Premium</h2>
+    <p style="color:#C8B99A;margin-bottom:20px;line-height:1.6;">Yeh level sirf <strong style="color:#E8C96A;">$2 (≈ PKR 560)</strong> mein unlock hota hai.<br>Payment EasyPaisa ke zariye karein.</p>
+    
+    <div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:16px;padding:20px;margin-bottom:24px;">
+      <div style="font-family:'Cinzel',serif;color:#E8C96A;font-size:0.8rem;letter-spacing:2px;margin-bottom:10px;">📱 EASYPAISA ACCOUNT</div>
+      <div style="font-size:1.6rem;font-weight:700;color:#F5E6C8;letter-spacing:3px;">03147980692</div>
+      <div style="color:#C8B99A;font-size:0.85rem;margin-top:6px;">Ahmad Rauf</div>
+    </div>
+
+    <p style="color:#C8B99A;font-size:0.85rem;margin-bottom:20px;">Payment ke baad screenshot WhatsApp karein:<br><strong style="color:#E8C96A;">03147980692</strong> — aur unlock code hasil karein.</p>
+
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button onclick="closePaymentModal()" style="font-family:'Cinzel',serif;padding:12px 28px;border-radius:50px;border:1px solid rgba(201,168,76,0.5);background:transparent;color:#C9A84C;cursor:pointer;font-size:0.85rem;">Cancel</button>
+      <button onclick="unlockHardDemo()" style="font-family:'Cinzel',serif;padding:12px 28px;border-radius:50px;border:none;background:linear-gradient(135deg,#C9A84C,#E8C96A);color:#0A0E27;cursor:pointer;font-size:0.85rem;font-weight:700;">✅ Maine Pay Kar Diya</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== LEVEL SELECT SCREEN ==================== -->
+<main id="screen-levels" class="screen">
+  <button class="back-btn" onclick="showScreen('screen-difficulty')">Back to Difficulty</button>
+  <div style="text-align:center;margin-bottom:36px;">
+    <p class="royal-heading">Royal Level Chambers</p>
+    <p class="royal-sub" id="levels-sub">Choose your level to begin</p>
+  </div>
+  <div class="levels-grid" id="levels-grid"></div>
+</main>
+
+<!-- ==================== TYPING TEST SCREEN ==================== -->
+<main id="screen-typing" class="screen">
+  <div class="typing-topbar">
+    <div class="typing-stat">
+      <div class="stat-val" id="stat-level">Level 1</div>
+      <div class="stat-lbl">Level</div>
+    </div>
+    <div class="typing-stat">
+      <div class="stat-val" id="stat-wpm">0</div>
+      <div class="stat-lbl">WPM</div>
+    </div>
+    <div class="timer-wrap" title="Time remaining">
+      <svg class="timer-svg" width="90" height="90" viewBox="0 0 90 90">
+        <circle class="timer-bg" cx="45" cy="45" r="40"/>
+        <circle class="timer-arc" id="timer-arc" cx="45" cy="45" r="40"/>
+      </svg>
+      <div class="timer-num" id="timer-num">60</div>
+    </div>
+    <div class="typing-stat">
+      <div class="stat-val" id="stat-acc">100%</div>
+      <div class="stat-lbl">Accuracy</div>
+    </div>
+    <button class="btn btn-ghost" onclick="exitTyping()" style="font-size:0.72rem;padding:10px 18px;">✕ Exit</button>
+  </div>
+
+  <div class="glass-card typing-passage-wrap" id="passage-display"></div>
+
+  <div class="typing-input-wrap">
+    <textarea id="typing-input" rows="3" placeholder="Begin typing here... Your royal journey starts now." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+  </div>
+
+  <div style="text-align:center;opacity:0.5;font-size:0.82rem;font-style:italic;">
+    ✦ Type the passage above • Correct characters glow gold ✦
+  </div>
+</main>
+
+<!-- ==================== RESULTS SCREEN ==================== -->
+<main id="screen-results" class="screen" style="align-items:center;">
+  <div class="glass-card results-card">
+    <p style="font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:3px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;">Royal Performance Report</p>
+    <div class="result-wpm" id="res-wpm">0</div>
+    <div class="result-label">Words Per Minute</div>
+    <div class="result-stars" id="res-stars">☆☆☆</div>
+
+    <div class="result-chart-wrap">
+      <div>
+        <div class="result-donut">
+          <canvas id="chart-acc-donut"></canvas>
+          <div class="donut-center">
+            <div class="dval" id="res-acc-val">0%</div>
+            <div class="dlbl">ACCURACY</div>
+          </div>
+        </div>
+      </div>
+      <div class="result-bar-wrap glass-card" style="padding:20px;">
+        <div class="chart-title" style="font-size:0.82rem;margin-bottom:14px;">Performance Comparison</div>
+        <div style="height:150px;position:relative;"><canvas id="chart-compare-bar"></canvas></div>
+      </div>
+    </div>
+
+    <div class="result-msg" id="res-msg">Well done!</div>
+
+    <div class="result-btns">
+      <button class="btn btn-ghost"  onclick="retryLevel()">↺ Retry Level</button>
+      <button class="btn btn-gold"   onclick="nextLevel()"  id="btn-next-level">Next Level ▶</button>
+      <button class="btn btn-outline" onclick="showScreen('screen-home')">⌂ Menu</button>
+    </div>
+  </div>
+</main>
+
+<!-- ==================== PROGRESS SCREEN ==================== -->
+<main id="screen-progress" class="screen">
+  <div style="text-align:center;margin-bottom:36px;">
+    <p class="royal-heading">My Progress</p>
+    <p class="royal-sub">Your Royal Typing Journey at a Glance</p>
+  </div>
+
+  <div class="charts-grid">
+    <div class="glass-card chart-card">
+      <div class="chart-title">⚡ WPM — Last 10 Sessions</div>
+      <div class="chart-wrap"><canvas id="chart-wpm-line"></canvas></div>
+    </div>
+    <div class="glass-card chart-card">
+      <div class="chart-title">🎯 Accuracy Per Level</div>
+      <div class="chart-wrap"><canvas id="chart-acc-bar"></canvas></div>
+    </div>
+    <div class="glass-card chart-card">
+      <div class="chart-title">🕐 Time on Difficulty</div>
+      <div class="chart-wrap"><canvas id="chart-diff-pie"></canvas></div>
+    </div>
+    <div class="glass-card chart-card">
+      <div class="chart-title">🏆 Personal Bests</div>
+      <div id="pb-table-wrap" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ==================== SETTINGS SCREEN ==================== -->
+<main id="screen-settings" class="screen">
+  <div style="text-align:center;margin-bottom:36px;">
+    <p class="royal-heading">Settings</p>
+    <p class="royal-sub">Personalize Your Royal Experience</p>
+  </div>
+
+  <div class="settings-wrap">
+    <div class="glass-card settings-section">
+      <div class="settings-title">⚙ Display</div>
+
+      <div class="setting-row">
+        <div class="setting-lbl">Font Size<small>Affects typing text size</small></div>
+        <div class="seg-ctrl" id="seg-fontsize">
+          <button class="seg-btn" onclick="setFontSize('small')">Small</button>
+          <button class="seg-btn active" onclick="setFontSize('medium')">Medium</button>
+          <button class="seg-btn" onclick="setFontSize('large')">Large</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-lbl">Language<small>Interface language</small></div>
+        <div class="seg-ctrl" id="seg-lang">
+          <button class="seg-btn active" onclick="setLang('en')">English</button>
+          <button class="seg-btn" onclick="setLang('ur')">اردو</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card settings-section">
+      <div class="settings-title">🔊 Audio</div>
+      <div class="setting-row">
+        <div class="setting-lbl">Sound Effects<small>Key clicks & completion sounds</small></div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-sound" onchange="saveSetting('sound', this.checked)" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="glass-card settings-section">
+      <div class="settings-title">⚠ Danger Zone</div>
+      <div class="setting-row">
+        <div class="setting-lbl">Reset All Progress<small>Clears levels, scores & history</small></div>
+        <button class="btn btn-danger" onclick="confirmReset()">Reset Progress</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+</div><!-- /#app -->
+
+<!-- ==================== RESET MODAL ==================== -->
+<div class="modal-overlay" id="modal-reset">
+  <div class="glass-card modal-box">
+    <div class="modal-title">⚠ Reset All Progress?</div>
+    <div class="modal-text">This will permanently erase all your level completions, high scores, and session history. This action <strong>cannot be undone</strong>.</div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost"   onclick="closeModal('modal-reset')">Cancel</button>
+      <button class="btn btn-danger"  onclick="doReset()">Yes, Reset Everything</button>
+    </div>
+  </div>
+</div><script>
+/* ============================================================
+   TYPEMASTER ELITE — FULL JAVASCRIPT ENGINE
+   ============================================================ */
+
+// ==================== STATE ====================
+const state = {
+  audience:   null,     // 'children' | 'adults' | 'seniors'
+  difficulty: null,     // 'easy' | 'normal' | 'hard'
+  hardUnlocked: false,  // true after payment confirmation
+  level:      null,     // 1-10
+  currentScreen: 'screen-home',
+
+  // Typing test
+  passage:    '',
+  inputVal:   '',
+  timerMax:   60,
+  timerLeft:  60,
+  timerID:    null,
+  wpmID:      null,
+  testActive: false,
+  startTime:  null,
+  correctChars: 0,
+  totalTyped:   0,
+
+  // Stored
+  progress:   {},       // { audience_diff_level: { stars, wpm, acc } }
+  sessions:   [],       // last 10 sessions { wpm, acc, diff, ts }
+  settings:   { sound: true, fontSize: 'medium', lang: 'en' },
+
+  // Result charts
+  charts: {}
+};
+
+// ==================== TEXTS ====================
+const TEXTS = {
+  children: {
+    1:  'cat dog sun fun hat bat sat mat pan can',
+    2:  'cat and dog play in the sun all day long',
+    3:  'the big red ball is fun to kick and throw',
+    4:  'mom and dad love me very much every day',
+    5:  'گھر ماں باپ بھائی بہن سیب آم گائے بلی',
+    6:  'the little puppy runs in the green garden',
+    7:  'apple mango orange banana grape lemon peach',
+    8:  'the bunny hops over the log into the field',
+    9:  'one two three four five six seven eight nine',
+    10: 'the small bird sings a sweet song in the tree'
+  },
+  adults: {
+    1:  'the quick brown fox jumps over the lazy dog and runs away',
+    2:  'practice makes perfect and consistency is the key to success',
+    3:  'typing speed improves with daily practice and focused effort',
+    4:  'technology has transformed the way we communicate and work',
+    5:  'محنت کامیابی کی کنجی ہے اور ہر محنت کا پھل ملتا ہے',
+    6:  'the art of typing efficiently is a valuable professional skill in modern times',
+    7:  'knowledge is power and education opens doors to endless opportunities',
+    8:  'a good typist focuses on accuracy before striving for higher speed',
+    9:  'the universe is vast and full of mysteries waiting to be discovered',
+    10: 'dedicated practice each day will transform you into a master typist of royal caliber'
+  },
+  seniors: {
+    1:  'home love peace family care',
+    2:  'the sun rises every morning',
+    3:  'tea and books are good friends',
+    4:  'fresh air and walks keep us healthy',
+    5:  'گھر خاندان محبت سکون عبادت',
+    6:  'a calm mind is a happy mind each day',
+    7:  'memories of good times bring us joy',
+    8:  'small steps taken every day lead to big changes',
+    9:  'wisdom comes from years of living and learning well',
+    10: 'every day is a gift and every moment is precious to cherish'
+  }
+};
+
+const HARD_TEXTS = {
+  children: {
+    1:  'cat, dog, and bird! They play — very fun.',
+    2:  'The big, red ball! Can you kick it? Yes!',
+    3:  'Mango, apple, grape — which one is your favourite?',
+    4:  'Jump, hop, run fast! The race has begun now.',
+    5:  'سیب، آم، گائے — یہ سب کیا ہیں؟ بتاؤ!',
+    6:  'The puppy barked: "Woof!" The cat said: "Meow!"',
+    7:  'One, two, three! Ready? Let us go — fast!',
+    8:  'Rain, thunder, lightning! Stay inside, stay safe today.',
+    9:  'The teacher asked: "What is 5+5?" Answer: ten!',
+    10: 'Stars, moon, and sun — the sky holds many wonders!'
+  },
+  adults: {
+    1:  'The quick, brown fox — it jumps over the lazy dog!',
+    2:  'Efficiency, accuracy, and speed: three pillars of expert typing.',
+    3:  'In 2024, technology advances at an unprecedented rate of change.',
+    4:  'Dr. Smith\'s report confirmed: "Results exceed all expectations!"',
+    5:  'محنت، لگن اور حوصلہ — یہی کامیابی کا راز ہے۔',
+    6:  'The annual report (Q4 2024) shows a 34.7% increase in revenue.',
+    7:  'She asked, "Can you type 80 WPM?" He replied, "Absolutely — watch!"',
+    8:  'Complex systems require: planning, execution, review, and iteration.',
+    9:  'From 9:00 a.m. to 5:00 p.m., the office bustles with activity.',
+    10: 'Mastery demands sacrifice; excellence rewards persistence — type on, champion!'
+  },
+  seniors: {
+    1:  'Home, peace, and love — these are life\'s true treasures.',
+    2:  'Morning tea, fresh bread, and a good book: perfect joy.',
+    3:  'Family gatherings bring warmth, laughter, and cherished memories.',
+    4:  'Take care of your health — it is your greatest wealth.',
+    5:  'گھر، خاندان، محبت — زندگی کی اصل دولت یہی ہے۔',
+    6:  'A walk in the park each morning refreshes the mind.',
+    7:  'Good friends, good food, and good health — ask no more.',
+    8:  'Patience and wisdom come to those who have lived well.',
+    9:  'Every sunrise brings a new chance to be kind and grateful.',
+    10: 'Life is a journey; walk it slowly, wisely, and with love.'
+  }
+};
+
+const LEVEL_NAMES = [
+  'Royal Scrolls','Golden Letters','Ivory Keys','Silver Scripts',
+  'Pearl Pages','Diamond Drafts','Emerald Edicts','Sapphire Stories',
+  'Ruby Recitals','Crown Mastery'
+];
+
+// ==================== PROGRESS helpers ====================
+function loadState() {
+  try {
+    state.progress = JSON.parse(localStorage.getItem('tm_progress') || '{}');
+    state.sessions  = JSON.parse(localStorage.getItem('tm_sessions') || '[]');
+    const s = JSON.parse(localStorage.getItem('tm_settings') || '{}');
+    if (s.sound     !== undefined) state.settings.sound    = s.sound;
+    if (s.fontSize)                state.settings.fontSize = s.fontSize;
+    if (s.lang)                    state.settings.lang     = s.lang;
+  } catch(e) {}
+  applySettings();
+}
+function saveProgress() {
+  localStorage.setItem('tm_progress', JSON.stringify(state.progress));
+  localStorage.setItem('tm_sessions',  JSON.stringify(state.sessions));
+  localStorage.setItem('tm_settings',  JSON.stringify(state.settings));
+}
+function progressKey(aud, diff, lvl) { return `${aud}_${diff}_${lvl}`; }
+function getLevelData(aud, diff, lvl) {
+  return state.progress[progressKey(aud, diff, lvl)] || null;
+}
+function setLevelData(aud, diff, lvl, data) {
+  const key = progressKey(aud, diff, lvl);
+  const existing = state.progress[key];
+  if (!existing || data.stars > existing.stars || data.wpm > existing.wpm) {
+    state.progress[key] = data;
+  }
+  saveProgress();
+}
+function isLevelUnlocked(aud, diff, lvl) {
+  if (lvl === 1) return true;
+  const prev = getLevelData(aud, diff, lvl - 1);
+  return prev !== null;
+}
+
+// ==================== SCREEN NAVIGATION ====================
+function showScreen(id, extra) {
+  const curr = document.getElementById(state.currentScreen);
+  if (curr) { curr.classList.remove('active'); }
+  const next = document.getElementById(id);
+  if (!next) return;
+  next.classList.add('active');
+  state.currentScreen = id;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Nav active
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (id === 'screen-home')     document.querySelectorAll('.nav-btn')[0].classList.add('active');
+  if (id === 'screen-progress') document.querySelectorAll('.nav-btn')[1].classList.add('active');
+  if (id === 'screen-settings') document.querySelectorAll('.nav-btn')[2].classList.add('active');
+
+  if (id === 'screen-progress') renderProgressCharts();
+  if (id === 'screen-settings') applySettingsUI();
+  if (id === 'screen-levels')   renderLevels();
+}
+
+// ==================== AUDIENCE ====================
+function selectAudience(aud) {
+  state.audience = aud;
+  const badge = document.getElementById('audience-badge');
+  const labels = { children: '🧒 Bachay', adults: '🧑 Baday', seniors: '👴 Buzurg' };
+  badge.textContent = labels[aud];
+  badge.style.display = 'inline-block';
+
+  const sub = document.getElementById('diff-sub');
+  sub.textContent = `Showing difficulties for: ${labels[aud]}`;
+
+  if (aud === 'seniors') {
+    // Auto-apply large font for seniors suggestion
+    document.documentElement.style.setProperty('--font-sz','1.2rem');
+  } else {
+    applySettings();
+  }
+  showScreen('screen-difficulty');
+}
+
+// ==================== DIFFICULTY ====================
+function selectDifficulty(diff) {
+  if (diff === 'hard' && !state.hardUnlocked) {
+    document.getElementById('payment-modal').style.display = 'flex';
+    return;
+  }
+  state.difficulty = diff;
+  state.timerMax = (diff === 'hard') ? 45 : 60;
+  document.getElementById('levels-sub').textContent =
+    `${state.difficulty.charAt(0).toUpperCase()+state.difficulty.slice(1)} difficulty • ${state.audience} mode`;
+  showScreen('screen-levels');
+}
+
+// ==================== LEVELS ====================
+function renderLevels() {
+  const grid = document.getElementById('levels-grid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const unlocked = isLevelUnlocked(state.audience, state.difficulty, i);
+    const data     = getLevelData(state.audience, state.difficulty, i);
+    const stars    = data ? data.stars : 0;
+    const pct      = data ? Math.min(100, Math.round(data.acc)) : 0;
+
+    const starStr = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+    const card = document.createElement('div');
+    card.className = `glass-card level-card${unlocked ? '' : ' locked'}`;
+    if (data) card.setAttribute('data-complete', '1');
+    card.innerHTML = `
+      ${!unlocked ? '<span class="lock-icon">🔒</span>' : ''}
+      ${data ? '<span class="badge-complete">🏅</span>' : ''}
+      <div class="level-num">${i}</div>
+      <div class="level-name">${LEVEL_NAMES[i-1]}</div>
+      <div class="level-stars">${starStr}</div>
+      <div class="level-progress-bar">
+        <div class="level-progress-fill" style="width:${pct}%"></div>
+      </div>
+    `;
+    if (unlocked) card.onclick = () => startLevel(i);
+    grid.appendChild(card);
+  }
+}
+
+// ==================== TYPING TEST ====================
+function startLevel(lvl) {
+  state.level   = lvl;
+  state.inputVal = '';
+  state.correctChars = 0;
+  state.totalTyped   = 0;
+  state.testActive   = false;
+  state.startTime    = null;
+
+  const texts = (state.difficulty === 'hard') ? HARD_TEXTS : TEXTS;
+  state.passage = texts[state.audience]?.[lvl] || TEXTS.adults[lvl];
+
+  state.timerLeft = state.timerMax;
+
+  document.getElementById('stat-level').textContent = `Level ${lvl}`;
+  document.getElementById('stat-wpm').textContent   = '0';
+  document.getElementById('stat-acc').textContent   = '100%';
+  document.getElementById('timer-num').textContent  = state.timerLeft;
+  document.getElementById('timer-num').classList.remove('urgent');
+  document.getElementById('timer-arc').classList.remove('urgent');
+  updateTimerArc(state.timerLeft, state.timerMax);
+
+  renderPassage('');
+  showScreen('screen-typing');
+
+  setTimeout(() => {
+    const inp = document.getElementById('typing-input');
+    inp.value = '';
+    inp.focus();
+  }, 450);
+}
+
+function renderPassage(typed) {
+  const passage = state.passage;
+  const display = document.getElementById('passage-display');
+  let html = '';
+  for (let i = 0; i < passage.length; i++) {
+    let cls = 'char pending';
+    if (i < typed.length) {
+      cls = (typed[i] === passage[i]) ? 'char correct' : 'char incorrect';
+    } else if (i === typed.length) {
+      cls = 'char pending cursor';
+    }
+    const ch = passage[i] === ' ' ? '&nbsp;' : passage[i];
+    html += `<span class="${cls}">${ch}</span>`;
+  }
+  display.innerHTML = html;
+}
+
+function calcStats(typed) {
+  const passage = state.passage;
+  let correct = 0, incorrect = 0;
+  for (let i = 0; i < typed.length; i++) {
+    if (i < passage.length) {
+      if (typed[i] === passage[i]) correct++;
+      else incorrect++;
+    }
+  }
+  const elapsed = state.startTime ? (Date.now() - state.startTime) / 60000 : 0.001;
+  const words   = correct / 5;
+  const wpm     = elapsed > 0 ? Math.round(words / elapsed) : 0;
+  const total   = correct + incorrect;
+  const acc     = total > 0 ? Math.round((correct / total) * 100) : 100;
+  return { wpm, acc, correct, incorrect, total };
+}
+
+function updateTimerArc(left, max) {
+  const arc    = document.getElementById('timer-arc');
+  const radius = 40;
+  const circ   = 2 * Math.PI * radius; // 251.2
+  const offset = circ * (1 - left / max);
+  arc.style.strokeDashoffset = offset;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('typing-input');
+  inp.addEventListener('input', onTypingInput);
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') { e.preventDefault(); }
+    if (state.settings.sound && state.testActive) playKeySound();
+  });
+});
+
+function onTypingInput(e) {
+  const typed = e.target.value;
+  state.inputVal = typed;
+
+  if (!state.testActive && typed.length > 0) {
+    state.testActive = true;
+    state.startTime  = Date.now();
+    startTimer();
+  }
+
+  renderPassage(typed);
+
+  const stats = calcStats(typed);
+  document.getElementById('stat-wpm').textContent = stats.wpm;
+  document.getElementById('stat-acc').textContent = stats.acc + '%';
+
+  // Auto-submit when passage fully typed correctly
+  if (typed === state.passage) {
+    stopTimer();
+    finishTest(typed);
+  }
+}
+
+function startTimer() {
+  clearInterval(state.timerID);
+  state.timerID = setInterval(() => {
+    state.timerLeft--;
+    document.getElementById('timer-num').textContent = state.timerLeft;
+    updateTimerArc(state.timerLeft, state.timerMax);
+
+    if (state.timerLeft <= 10) {
+      document.getElementById('timer-num').classList.add('urgent');
+      document.getElementById('timer-arc').classList.add('urgent');
+    }
+    if (state.timerLeft <= 0) {
+      stopTimer();
+      finishTest(document.getElementById('typing-input').value);
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(state.timerID);
+  state.testActive = false;
+}
+
+function finishTest(typed) {
+  stopTimer();
+  const stats  = calcStats(typed);
+  const stars  = starsFromStats(stats.wpm, stats.acc, state.difficulty, state.audience);
+
+  setLevelData(state.audience, state.difficulty, state.level, {
+    stars, wpm: stats.wpm, acc: stats.acc, date: Date.now()
+  });
+
+  state.sessions.push({
+    wpm: stats.wpm, acc: stats.acc,
+    diff: state.difficulty, aud: state.audience,
+    level: state.level, ts: Date.now()
+  });
+  if (state.sessions.length > 30) state.sessions = state.sessions.slice(-30);
+  saveProgress();
+
+  showResultsScreen(stats, stars);
+}
+
+function starsFromStats(wpm, acc, diff, aud) {
+  const targets = {
+    children: { easy:[15,25,35], normal:[20,35,50], hard:[10,20,30] },
+    adults:   { easy:[25,40,55], normal:[40,60,80], hard:[50,80,110] },
+    seniors:  { easy:[10,18,25], normal:[15,25,35], hard:[10,18,25] }
+  };
+  const t = targets[aud]?.[diff] || [20,40,60];
+  if (wpm >= t[2] && acc >= 90) return 3;
+  if (wpm >= t[1] && acc >= 75) return 2;
+  if (wpm >= t[0] || acc >= 60) return 1;
+  return 0;
+}
+
+function exitTyping() {
+  stopTimer();
+  showScreen('screen-levels');
+}
+
+// ==================== RESULTS ====================
+function showResultsScreen(stats, stars) {
+  document.getElementById('res-wpm').textContent   = stats.wpm;
+  document.getElementById('res-acc-val').textContent = stats.acc + '%';
+  document.getElementById('res-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+
+  const msgs = {
+    3: ['Shabash! Exceptional performance! You are a true TypeMaster Elite! 🏆',
+        'برلین! آپ نے شاندار کارکردگی دکھائی۔ ماشاءاللہ!'],
+    2: ['Well done! A solid performance worthy of the Royal Academy! 👑',
+        'بہت خوب! آپ نے ۷۵ فیصد سے زیادہ درستگی حاصل کی۔'],
+    1: ['Good effort! Keep practising — greatness is within your reach! 💪',
+        'اچھی کوشش! مزید مشق سے آپ بہتر ہو سکتے ہیں۔'],
+    0: ['Don\'t give up! Every master was once a beginner. Try again! 🌟',
+        'حوصلہ رکھیں! دوبارہ کوشش کریں۔']
+  };
+  const msgArr = msgs[stars] || msgs[0];
+  document.getElementById('res-msg').textContent = msgArr[state.settings.lang === 'ur' ? 1 : 0];
+
+  // Next level
+  const nextBtn = document.getElementById('btn-next-level');
+  nextBtn.style.display = (state.level < 10) ? 'inline-block' : 'none';
+
+  showScreen('screen-results');
+
+  // Charts
+  setTimeout(() => {
+    buildResultCharts(stats);
+    if (stats.acc >= 90) launchConfetti();
+    if (state.settings.sound) playSuccessSound();
+  }, 500);
+}
+
+function retryLevel()  { startLevel(state.level); }
+function nextLevel()   { if (state.level < 10) startLevel(state.level + 1); }
+
+// ==================== PAYMENT MODAL ====================
+function closePaymentModal() {
+  document.getElementById('payment-modal').style.display = 'none';
+}
+function unlockHardDemo() {
+  state.hardUnlocked = true;
+  closePaymentModal();
+  selectDifficulty('hard');
+  alert('✅ Hard Level Unlock Ho Gaya! Shukriya!');
+}
+
+// ==================== CHARTS ====================
+function destroyChart(key) {
+  if (state.charts[key]) { state.charts[key].destroy(); delete state.charts[key]; }
+}
+
+const CHART_GOLD  = '#C9A84C';
+const CHART_NAVY  = '#0A0E27';
+const CHART_CHAMP = '#F5E6C8';
+const CHART_DIM   = 'rgba(245,230,200,0.4)';
+
+function buildResultCharts(stats) {
+  destroyChart('acc-donut');
+  destroyChart('compare-bar');
+
+  // Accuracy donut
+  const ctxD = document.getElementById('chart-acc-donut').getContext('2d');
+  state.charts['acc-donut'] = new Chart(ctxD, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [stats.acc, 100 - stats.acc],
+        backgroundColor: [CHART_GOLD, 'rgba(255,255,255,0.05)'],
+        borderColor: ['rgba(201,168,76,0.8)', 'rgba(255,255,255,0.05)'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      animation: { duration: 1000, easing: 'easeOutQuart' }
+    }
+  });
+
+  // Comparison bar
+  const prevBest = getPersonalBest(state.audience, state.difficulty, state.level);
+  const avgWPM   = getAverageWPM(state.audience, state.difficulty, state.level);
+  const ctxB = document.getElementById('chart-compare-bar').getContext('2d');
+  state.charts['compare-bar'] = new Chart(ctxB, {
+    type: 'bar',
+    data: {
+      labels: ['This Attempt', 'Level Average', 'Personal Best'],
+      datasets: [{
+        data: [stats.wpm, avgWPM, prevBest],
+        backgroundColor: [
+          'rgba(201,168,76,0.8)',
+          'rgba(245,230,200,0.3)',
+          'rgba(201,168,76,0.4)'
+        ],
+        borderColor: [CHART_GOLD, CHART_DIM, CHART_GOLD],
+        borderWidth: 1, borderRadius: 6
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          grid:   { color: 'rgba(255,255,255,0.05)' },
+          ticks:  { color: CHART_DIM, font: { family: 'Cinzel', size: 10 } },
+          beginAtZero: true
+        },
+        x: {
+          grid:  { display: false },
+          ticks: { color: CHART_DIM, font: { family: 'Cinzel', size: 10 } }
+        }
+      },
+      animation: { duration: 900, easing: 'easeOutQuart' }
+    }
+  });
+}
+
+function getPersonalBest(aud, diff, lvl) {
+  const d = getLevelData(aud, diff, lvl);
+  return d ? d.wpm : 0;
+}
+
+function getAverageWPM(aud, diff, lvl) {
+  const relevant = state.sessions.filter(s => s.aud === aud && s.diff === diff && s.level === lvl);
+  if (!relevant.length) return 0;
+  return Math.round(relevant.reduce((a, b) => a + b.wpm, 0) / relevant.length);
+}
+
+function renderProgressCharts() {
+  // Last 10 sessions
+  const last10 = state.sessions.slice(-10);
+  const wpmData = last10.map(s => s.wpm);
+  const labels  = last10.map((s, i) => `S${i+1}`);
+
+  destroyChart('wpm-line');
+  const ctxL = document.getElementById('chart-wpm-line').getContext('2d');
+  state.charts['wpm-line'] = new Chart(ctxL, {
+    type: 'line',
+    data: {
+      labels: labels.length ? labels : ['—'],
+      datasets: [{
+        label: 'WPM',
+        data: wpmData.length ? wpmData : [0],
+        borderColor: CHART_GOLD,
+        backgroundColor: 'rgba(201,168,76,0.1)',
+        pointBackgroundColor: CHART_GOLD,
+        pointBorderColor: '#fff', pointBorderWidth: 2,
+        pointRadius: 5, tension: 0.4, fill: true
+      }]
+    },
+    options: { ...baseChartOpts(), plugins: { legend: { display: false } } }
+  });
+
+  // Accuracy per level (current audience+diff or all)
+  const accLabels = LEVEL_NAMES.map((n,i) => `L${i+1}`);
+  const accData   = Array.from({length:10}, (_,i) => {
+    const d = getLevelData(state.audience||'adults', state.difficulty||'normal', i+1);
+    return d ? d.acc : 0;
+  });
+
+  destroyChart('acc-bar');
+  const ctxAB = document.getElementById('chart-acc-bar').getContext('2d');
+  state.charts['acc-bar'] = new Chart(ctxAB, {
+    type: 'bar',
+    data: {
+      labels: accLabels,
+      datasets: [{
+        label: 'Accuracy %',
+        data: accData,
+        backgroundColor: 'rgba(201,168,76,0.6)',
+        borderColor: CHART_GOLD, borderWidth: 1, borderRadius: 4
+      }]
+    },
+    options: {
+      ...baseChartOpts(),
+      scales: {
+        y: { max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: CHART_DIM, font: { family: 'Cinzel', size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: CHART_DIM, font: { family: 'Cinzel', size: 10 } } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Time on difficulty pie
+  const easy   = state.sessions.filter(s => s.diff === 'easy').length;
+  const normal = state.sessions.filter(s => s.diff === 'normal').length;
+  const hard   = state.sessions.filter(s => s.diff === 'hard').length;
+
+  destroyChart('diff-pie');
+  const ctxP = document.getElementById('chart-diff-pie').getContext('2d');
+  state.charts['diff-pie'] = new Chart(ctxP, {
+    type: 'pie',
+    data: {
+      labels: ['Easy', 'Normal', 'Hard'],
+      datasets: [{
+        data: [easy || 1, normal || 1, hard || 1],
+        backgroundColor: ['rgba(76,175,80,0.7)', 'rgba(201,168,76,0.7)', 'rgba(232,64,64,0.7)'],
+        borderColor: ['#4CAF50', CHART_GOLD, '#E84040'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          labels: { color: CHART_CHAMP, font: { family: 'Cinzel', size: 11 } }
+        }
+      },
+      animation: { duration: 900 }
+    }
+  });
+
+  // Personal bests table
+  renderPBTable();
+}
+
+function baseChartOpts() {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    animation: { duration: 800, easing: 'easeOutQuart' },
+    scales: {
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: CHART_DIM, font: { family: 'Cinzel', size: 10 } } },
+      x: { grid: { display: false }, ticks: { color: CHART_DIM, font: { family: 'Cinzel', size: 10 } } }
+    }
+  };
+}
+
+function renderPBTable() {
+  const wrap = document.getElementById('pb-table-wrap');
+  const rows = [];
+  const combos = [
+    ['children','easy'], ['children','normal'], ['children','hard'],
+    ['adults','easy'],   ['adults','normal'],   ['adults','hard'],
+    ['seniors','easy'],  ['seniors','normal'],  ['seniors','hard']
+  ];
+  combos.forEach(([aud, diff]) => {
+    let bestWPM = 0, bestAcc = 0;
+    for (let l = 1; l <= 10; l++) {
+      const d = getLevelData(aud, diff, l);
+      if (d) { bestWPM = Math.max(bestWPM, d.wpm); bestAcc = Math.max(bestAcc, d.acc); }
+    }
+    if (bestWPM > 0) {
+      rows.push(`<tr><td>${aud}</td><td>${diff}</td><td style="color:var(--gold);font-family:'Cinzel',serif">${bestWPM}</td><td>${bestAcc}%</td></tr>`);
+    }
+  });
+  wrap.innerHTML = `
+    <table class="pb-table">
+      <thead><tr>
+        <th>Audience</th><th>Difficulty</th><th>Best WPM</th><th>Best Acc</th>
+      </tr></thead>
+      <tbody>${rows.length ? rows.join('') : '<tr><td colspan="4" style="opacity:0.5;font-style:italic;">No sessions yet — start typing!</td></tr>'}</tbody>
+    </table>`;
+}
+
+// ==================== SETTINGS ====================
+function applySettings() {
+  const sizes = { small: '0.9rem', medium: '1rem', large: '1.2rem' };
+  document.documentElement.style.setProperty('--font-sz', sizes[state.settings.fontSize] || '1rem');
+}
+function applySettingsUI() {
+  // Font size
+  document.querySelectorAll('#seg-fontsize .seg-btn').forEach(b => b.classList.remove('active'));
+  const fsMap = { small: 0, medium: 1, large: 2 };
+  const idx = fsMap[state.settings.fontSize] ?? 1;
+  document.querySelectorAll('#seg-fontsize .seg-btn')[idx]?.classList.add('active');
+  // Lang
+  document.querySelectorAll('#seg-lang .seg-btn').forEach(b => b.classList.remove('active'));
+  const lMap = { en: 0, ur: 1 };
+  document.querySelectorAll('#seg-lang .seg-btn')[lMap[state.settings.lang] ?? 0]?.classList.add('active');
+  // Sound
+  document.getElementById('toggle-sound').checked = state.settings.sound !== false;
+}
+function setFontSize(sz) {
+  state.settings.fontSize = sz;
+  document.querySelectorAll('#seg-fontsize .seg-btn').forEach(b => b.classList.remove('active'));
+  const idx = { small:0, medium:1, large:2 }[sz] ?? 1;
+  document.querySelectorAll('#seg-fontsize .seg-btn')[idx]?.classList.add('active');
+  applySettings(); saveProgress();
+}
+function setLang(l) {
+  state.settings.lang = l;
+  document.querySelectorAll('#seg-lang .seg-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#seg-lang .seg-btn')[l === 'en' ? 0 : 1]?.classList.add('active');
+  saveProgress();
+}
+function saveSetting(key, val) {
+  state.settings[key] = val;
+  saveProgress();
+}
+
+// ==================== MODAL ====================
+function confirmReset() { document.getElementById('modal-reset').classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function doReset() {
+  state.progress = {}; state.sessions = [];
+  state.audience = null; state.difficulty = null; state.level = null;
+  document.getElementById('audience-badge').style.display = 'none';
+  saveProgress();
+  closeModal('modal-reset');
+  showScreen('screen-home');
+}
+
+// ==================== SOUND ENGINE ====================
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playKeySound() {
+  if (!state.settings.sound) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(600 + Math.random() * 200, ctx.currentTime);
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.08);
+  } catch(e) {}
+}
+function playSuccessSound() {
+  if (!state.settings.sound) return;
+  try {
+    const ctx = getAudioCtx();
+    const notes = [523, 659, 784, 1047];
+    notes.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      const t = ctx.currentTime + i * 0.15;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      osc.start(t); osc.stop(t + 0.4);
+    });
+  } catch(e) {}
+}
+
+// ==================== CONFETTI ====================
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const pieces = [];
+  const colors = ['#C9A84C','#E8C96A','#F5E6C8','#ffffff','#A07830','#FFD700'];
+
+  for (let i = 0; i < 180; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 12 + 5,
+      h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 4 + 2,
+      angle: Math.random() * 360,
+      spin: (Math.random() - 0.5) * 8,
+      alpha: 1
+    });
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle * Math.PI / 180);
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+      p.x     += p.vx;
+      p.y     += p.vy;
+      p.angle += p.spin;
+      p.vy    += 0.05;
+      if (frame > 120) p.alpha -= 0.008;
+    });
+    frame++;
+    if (frame < 250) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+// ==================== STARFIELD ====================
+function initStarfield() {
+  const canvas = document.getElementById('starfield');
+  const ctx    = canvas.getContext('2d');
+  let W = canvas.width  = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+
+  const STAR_COUNT = 200;
+  const stars = Array.from({length: STAR_COUNT}, () => ({
+    x:     Math.random() * W,
+    y:     Math.random() * H,
+    r:     Math.random() * 1.5 + 0.3,
+    alpha: Math.random(),
+    dAlpha: (Math.random() - 0.5) * 0.008,
+    speed: Math.random() * 0.15 + 0.02
+  }));
+
+  // A few "shooting stars"
+  let shooters = [];
+  function spawnShooter() {
+    shooters.push({
+      x: Math.random() * W, y: Math.random() * H * 0.5,
+      len: 80 + Math.random() * 80,
+      alpha: 1, speed: 6 + Math.random() * 4,
+      angle: Math.PI / 5
+    });
+    setTimeout(spawnShooter, 4000 + Math.random() * 5000);
+  }
+  spawnShooter();
+
+  window.addEventListener('resize', () => {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  });
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    // Draw stars
+    stars.forEach(s => {
+      s.alpha += s.dAlpha;
+      if (s.alpha > 1 || s.alpha < 0.1) s.dAlpha *= -1;
+      s.y -= s.speed;
+      if (s.y < 0) { s.y = H; s.x = Math.random() * W; }
+
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(245,230,200,${s.alpha})`;
+      ctx.fill();
+    });
+    // Draw shooters
+    shooters = shooters.filter(sh => sh.alpha > 0);
+    shooters.forEach(sh => {
+      const grd = ctx.createLinearGradient(
+        sh.x, sh.y,
+        sh.x - Math.cos(sh.angle) * sh.len,
+        sh.y - Math.sin(sh.angle) * sh.len
+      );
+      grd.addColorStop(0, `rgba(201,168,76,${sh.alpha})`);
+      grd.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.moveTo(sh.x, sh.y);
+      ctx.lineTo(sh.x - Math.cos(sh.angle) * sh.len, sh.y - Math.sin(sh.angle) * sh.len);
+      ctx.strokeStyle = grd;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      sh.x += sh.speed * Math.cos(sh.angle);
+      sh.y += sh.speed * Math.sin(sh.angle);
+      sh.alpha -= 0.02;
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  initStarfield();
+  applySettingsUI();
+
+  // Close modal on overlay click
+  document.getElementById('modal-reset').addEventListener('click', function(e) {
+    if (e.target === this) closeModal('modal-reset');
+  });
+
+  // Prevent default typing input behavior when not on typing screen
+  document.addEventListener('keydown', (e) => {
+    if (state.currentScreen !== 'screen-typing') return;
+    const inp = document.getElementById('typing-input');
+    if (document.activeElement !== inp && e.key.length === 1) inp.focus();
+  });
+});
+</script></body></html>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0a82e4239e6907d',t:'MTc4MTI2MDIzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
